@@ -87,7 +87,7 @@ namespace Sayama.LSystem
 			{
 				Rules = new()
 				{
-					{ 'F', " F+F−F−F+F" }
+					{ 'F', "F+F-F-F+F" }
 				},
 				IterationCount = 1,
 				InitialString = "F",
@@ -162,8 +162,8 @@ namespace Sayama.LSystem
 			Stack<LSystemNode> nodeStack = new ();
 			nodeStack.Push(new LSystemNode
 			{
-				Position = Vector3.zero,
-				Rotation = Quaternion.identity,
+				Position = root.position,
+				Rotation = root.rotation,
 				Object = root,
 			});
 
