@@ -45,25 +45,28 @@ namespace Sayama.LSystem
 
 		public Quaternion GenerateRandomRotation(Quaternion rotation, Vector3 direction)
 		{
-            return GenerateQuaternion(rotation, direction,GenerateRandomRotation());
+			return Quaternion.Euler(0, GenerateRandomRotation(),GenerateRandomRotation()) * rotation * Quaternion.Euler(GenerateRandomRotation(),0,0);
+            // return GenerateQuaternion(rotation, direction,GenerateRandomRotation());
+		}
+
+		public Quaternion GenerateRandomRightRotation(Quaternion rotation, Vector3 direction)
+		{
+			return Quaternion.Euler(0, GenerateRandomRightRotation(),GenerateRandomRightRotation()) * rotation * Quaternion.Euler(GenerateRandomRightRotation(),0,0);
+            // return GenerateQuaternion(rotation, direction,GenerateRandomRightRotation());
+		}
+
+		public Quaternion GenerateRandomLeftRotation(Quaternion rotation, Vector3 direction)
+		{
+			return Quaternion.Euler(0, GenerateRandomLeftRotation(),GenerateRandomLeftRotation()) * rotation * Quaternion.Euler(GenerateRandomLeftRotation(),0,0);
+			// return GenerateQuaternion(rotation, direction,GenerateRandomLeftRotation());
 		}
 		public float GenerateRandomRotation()
 		{
 			return Random.Range(-5f, 5.0f) + RotationDegrees * (Random.value > .5f ? 1 : -1);
 		}
-
-		public Quaternion GenerateRandomRightRotation(Quaternion rotation, Vector3 direction)
-		{
-            return GenerateQuaternion(rotation, direction,GenerateRandomRightRotation());
-		}
 		public float GenerateRandomRightRotation()
 		{
 			return Random.Range(-5f, 5.0f) + RotationDegrees;
-		}
-
-		public Quaternion GenerateRandomLeftRotation(Quaternion rotation, Vector3 direction)
-		{
-            return GenerateQuaternion(rotation, direction,GenerateRandomLeftRotation());
 		}
 		public float GenerateRandomLeftRotation()
 		{
@@ -86,7 +89,7 @@ namespace Sayama.LSystem
 				{
 					{ 'F', " F+F−F−F+F" }
 				},
-				IterationCount = 5,
+				IterationCount = 1,
 				InitialString = "F",
 				RotationDegrees = 22.5f,
 			};
@@ -103,6 +106,7 @@ namespace Sayama.LSystem
 			return Rotation * Vector3.up;
 		}
 	}
+
 	public static class LSystemCreator
 	{
 		/// <summary>
@@ -165,18 +169,21 @@ namespace Sayama.LSystem
 
 			for (int i = 0; i < lsystem.Length; i++)
 			{
-				char key = char.ToUpperInvariant(lsystem[i]);
+				char key = lsystem[i];
 				switch (key)
 				{
 					case 'F':
 					{
 						var node = nodeStack.Peek();
-						node.Position += node.GetDirection() * parameters.GenerateRandomDistance();
-						var obj = GameObject.CreatePrimitive(PrimitiveType.Cube);
+						var distance = parameters.GenerateRandomDistance();
+						node.Position += node.GetDirection() * distance;
+						
+						// Create newNodeObject
+						var obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 						obj.name =$"Node_{i}";
 						var trs = obj.transform;
 						trs.SetParent(node.Object, false);
-						trs.rotation = node.Rotation;
+						// trs.rotation = node.Rotation;
 						trs.position = node.Position;
 						node.Object = trs;
 						nodeStack.Replace(node);
@@ -189,7 +196,7 @@ namespace Sayama.LSystem
                         nodeStack.Replace(node);
 					}
                     	break;
-					case '-':
+					case '−':
                     {
 						var node = nodeStack.Peek();
                         node.Rotation = parameters.GenerateRandomLeftRotation(node.Rotation, node.GetDirection());
@@ -209,12 +216,42 @@ namespace Sayama.LSystem
 					}
                     	break;
 					default:
-						Debug.LogError($"The character '{key}' is unknown.");
+						Debug.LogError($"The character '{key}'({(int)key}) is unknown.");
 						break;
 				}
 			}
+
+			CreateRenderer(root);
 		}
-		
-		
+
+		private static void CreateRenderer(Transform obj)
+		{
+			Vector3 position = obj.position;
+			List<GameObject> objects = new List<GameObject>();
+			for (int i = 0; i < obj.childCount; i++)
+			{
+				var child = obj.GetChild(i);
+				
+				GameObject renderer = GameObject.CreatePrimitive(PrimitiveType.Cube);
+				objects.Add(renderer);
+				renderer.name = $"{obj.name}_to_{child.name}";
+	
+				var childPos = child.position;
+				var direction = childPos - position;
+
+				var trs = renderer.transform;
+				trs.position = position + (direction * 0.5f);
+				var forward = direction.normalized;
+				trs.rotation = Quaternion.LookRotation(forward);
+				trs.localScale = new Vector3(.65f, .65f, direction.magnitude);
+	
+				CreateRenderer(child);
+			}
+
+			foreach (var gameObject in objects)
+			{
+				gameObject.transform.SetParent(obj, true);
+			}
+		}
 	}
 }

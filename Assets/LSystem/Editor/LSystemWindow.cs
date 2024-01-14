@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Sayama.LSystem.Editor
 {
@@ -214,6 +215,27 @@ namespace Sayama.LSystem.Editor
 				LSystemCreator.GenerateLSystem(selection, LSystemParams);
 			}
 			EditorGUI.EndDisabledGroup();
+
+			EditorGUI.BeginDisabledGroup(!hasSelection || selection.childCount == 0);
+			if (GUILayout.Button("Clear L-System"))
+			{
+				ClearChildren(selection, false);
+			}
+			EditorGUI.EndDisabledGroup();
+		}
+
+		private void ClearChildren(Transform transform, bool clearSelf = true)
+		{
+			for (int i = transform.childCount - 1; i >= 0; i--)
+			{
+				Transform child = transform.GetChild(i);
+				ClearChildren(child, true);
+			}
+
+			if (clearSelf)
+			{
+				Object.DestroyImmediate(transform.gameObject, false);
+			}
 		}
 	}
 }
