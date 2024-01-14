@@ -43,34 +43,34 @@ namespace Sayama.LSystem
 			return Random.Range(2.0f, 5.0f);
 		}
 
-		public Quaternion GenerateRandomRotation(Quaternion rotation, Vector3 direction)
+		public Quaternion GenerateRandomRotation(Quaternion rotation)
 		{
 			return Quaternion.Euler(0, GenerateRandomRotation(),GenerateRandomRotation()) * rotation * Quaternion.Euler(GenerateRandomRotation(),0,0);
             // return GenerateQuaternion(rotation, direction,GenerateRandomRotation());
 		}
 
-		public Quaternion GenerateRandomRightRotation(Quaternion rotation, Vector3 direction)
+		public Quaternion GenerateRandomRightRotation(Quaternion rotation)
 		{
 			return Quaternion.Euler(0, GenerateRandomRightRotation(),GenerateRandomRightRotation()) * rotation * Quaternion.Euler(GenerateRandomRightRotation(),0,0);
             // return GenerateQuaternion(rotation, direction,GenerateRandomRightRotation());
 		}
 
-		public Quaternion GenerateRandomLeftRotation(Quaternion rotation, Vector3 direction)
+		public Quaternion GenerateRandomLeftRotation(Quaternion rotation)
 		{
 			return Quaternion.Euler(0, GenerateRandomLeftRotation(),GenerateRandomLeftRotation()) * rotation * Quaternion.Euler(GenerateRandomLeftRotation(),0,0);
 			// return GenerateQuaternion(rotation, direction,GenerateRandomLeftRotation());
 		}
 		public float GenerateRandomRotation()
 		{
-			return Random.Range(-5f, 5.0f) + RotationDegrees * (Random.value > .5f ? 1 : -1);
+			return Random.Range(-RotationDegrees*0.05f, +RotationDegrees*0.05f) + RotationDegrees * (Random.value > .5f ? 1 : -1);
 		}
 		public float GenerateRandomRightRotation()
 		{
-			return Random.Range(-5f, 5.0f) + RotationDegrees;
+			return Random.Range(-RotationDegrees*0.05f, +RotationDegrees*0.05f) + RotationDegrees;
 		}
 		public float GenerateRandomLeftRotation()
 		{
-			return Random.Range(-5f, 5.0f) + RotationDegrees * -1;
+			return Random.Range(-RotationDegrees*0.05f, +RotationDegrees*0.05f) + RotationDegrees * -1;
 		}
 
 		private Quaternion GenerateQuaternion(Quaternion rotation, Vector3 direction, float degrees)
@@ -131,7 +131,7 @@ namespace Sayama.LSystem
 			Assert.IsTrue(parameters.Rules.Count > 0, "parameters.Rules.Count > 0");
 			Assert.IsTrue(parameters.IterationCount >= 0, "parameters.IterationCount >= 0");
 
-			string result = parameters.InitialString;
+			string result = parameters.InitialString.Trim();
 
 			for (int i = 0; i < parameters.IterationCount; i++)
 			{
@@ -192,21 +192,21 @@ namespace Sayama.LSystem
 					case '+':
 					{
 						var node = nodeStack.Peek();
-                        node.Rotation = parameters.GenerateRandomRightRotation(node.Rotation, node.GetDirection());
+                        node.Rotation = parameters.GenerateRandomRightRotation(node.Rotation);
                         nodeStack.Replace(node);
 					}
                     	break;
-					case '−':
+					case '-':
                     {
 						var node = nodeStack.Peek();
-                        node.Rotation = parameters.GenerateRandomLeftRotation(node.Rotation, node.GetDirection());
+                        node.Rotation = parameters.GenerateRandomLeftRotation(node.Rotation);
                         nodeStack.Replace(node);
 					}
                     	break;
 					case '[':
                     {
 						var node = nodeStack.Peek();
-                        node.Rotation = parameters.GenerateRandomRotation(node.Rotation, node.GetDirection());
+                        node.Rotation = parameters.GenerateRandomRotation(node.Rotation);
 						nodeStack.Push(node);
 					}
                     	break;
@@ -217,6 +217,7 @@ namespace Sayama.LSystem
                     	break;
 					default:
 						Debug.LogError($"The character '{key}'({(int)key}) is unknown.");
+						Debug.LogError($"The character '{'-'}'({(int)'-'}) is unknown.");
 						break;
 				}
 			}
